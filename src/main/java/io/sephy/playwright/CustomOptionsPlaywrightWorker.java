@@ -43,7 +43,7 @@ public class CustomOptionsPlaywrightWorker<T> implements PlaywrightWorker<T> {
         try {
             browser = playwright.chromium().launch(launchOptions); //
             context = browser.newContext(contextOptions); //
-            if (CollectionUtils.isEmpty(initScripts)) {
+            if (!CollectionUtils.isEmpty(initScripts)) {
                 // The script is evaluated after the document was created but before any of its scripts were run.
                 // This is useful to amend the JavaScript environment, e.g. to seed Math.random.
                 for (String initScript : initScripts) {
