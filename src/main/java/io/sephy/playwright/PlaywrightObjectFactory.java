@@ -1,12 +1,10 @@
 package io.sephy.playwright;
 
-import java.util.Map;
-
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
-import org.springframework.util.CollectionUtils;
 
+import com.microsoft.playwright.APIResponse;
 import com.microsoft.playwright.Playwright;
 
 /**
@@ -15,28 +13,15 @@ import com.microsoft.playwright.Playwright;
  */
 public class PlaywrightObjectFactory extends BasePooledObjectFactory<Playwright> {
 
-    // private static final File LOCAL_VALIDATE_HTML;
-    //
-    // static {
-    // LOCAL_VALIDATE_HTML = new File("PlaywrightObject.html");
-    // String HTML = "<html><body></body></html>";
-    // try {
-    // StreamUtils.copy(HTML, StandardCharsets.UTF_8, new FileOutputStream(LOCAL_VALIDATE_HTML));
-    // } catch (Exception e) {
-    // throw new RuntimeException(e);
-    // }
-    // }
+    private Playwright.CreateOptions createOptions;
 
-    private Map<String, String> playwrightConfig;
-
-    public PlaywrightObjectFactory(Map<String, String> playwrightConfig) {
-        this.playwrightConfig = playwrightConfig;
+    public PlaywrightObjectFactory(Playwright.CreateOptions createOptions) {
+        this.createOptions = createOptions;
     }
 
     @Override
     public Playwright create() throws Exception {
-        return Playwright.create(
-            CollectionUtils.isEmpty(playwrightConfig) ? null : new Playwright.CreateOptions().setEnv(playwrightConfig));
+        return Playwright.create(createOptions);
     }
 
     @Override
@@ -52,8 +37,8 @@ public class PlaywrightObjectFactory extends BasePooledObjectFactory<Playwright>
     @Override
     public boolean validateObject(final PooledObject<Playwright> p) {
         // p.getObject().request().newContext().get(LOCAL_VALIDATE_HTML.toURI().toString());
-        p.getObject().request().newContext().get("https://www.baidu.com");
-        return true;
+        APIResponse apiResponse = p.getObject().request().newContext().get("https://www.baidu.com");
+        return apiResponse.ok();
     }
 
     private static class DefaultPooledPlaywright extends DefaultPooledObject<Playwright> {

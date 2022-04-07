@@ -1,0 +1,46 @@
+playwright:
+  # 浏览器类型 chromium, firefox, webkit
+  browderType: 'chromium'
+  # 初始化js脚本
+  initScripts:
+    - '/Users/sephy/workspace/psn-playwright/src/main/resources/js/hideHeadless.js'
+
+  proxySettings:
+    # 是否使用代理
+    isUseProxy: true
+    # 代理服务器地址
+    server: '127.0.0.1:7890'
+    # 代理服务器用户名
+    username: null
+    # 代理服务器密码
+    password: null
+
+  screenSizeSettings:
+    # 屏幕宽度
+    width: 1920
+    # 屏幕高度
+    height: 1080
+
+  viewportSizeSettings:
+    # 视口宽度
+    width: 1920
+    # 视口高度
+    height: 1080
+
+  pageSettings:
+    # 默认超时时间
+    defaultTimeout: 60000
+
+  launchOptions:
+    # 是否启用无头模式
+    headless: false
+    # 每次操作延迟时间，以便观察，单位毫秒，
+    slowMo: 200
+
+  contextOptions:
+    # 设置浏览器语言
+    locale: 'zh-CN'
+    # 时区
+    timezoneId: 'Asia/Shanghai'
+    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36 Edg/97.0.1072.69'
+
