@@ -8,6 +8,7 @@ import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Mouse;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.BoundingBox;
+import com.microsoft.playwright.options.WaitForSelectorState;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -24,15 +25,39 @@ public abstract class PlaywrightUtils {
     public static final ElementHandleCheckCondition VISIBLE_CONDITION =
         elementHandle -> elementHandle != null && elementHandle.isVisible();
 
+    public static ElementHandle waitForSelector(@NonNull Page page, @NonNull String selector, Double timeout) {
+        return waitForSelector(page, selector, timeout, WaitForSelectorState.VISIBLE, Boolean.TRUE);
+    }
+
+    public static ElementHandle waitForSelector(@NonNull Page page, @NonNull String selector, Double timeout,
+        WaitForSelectorState state) {
+        return waitForSelector(page, selector, timeout, state, Boolean.TRUE);
+    }
+
+    public static ElementHandle waitForSelector(@NonNull Page page, @NonNull String selector, Double timeout,
+        WaitForSelectorState state, Boolean strict) {
+        return waitForSelector(page, selector,
+            new Page.WaitForSelectorOptions().setTimeout(timeout).setState(state).setStrict(strict));
+    }
+
+    public static ElementHandle waitForSelector(@NonNull Page page, @NonNull String selector,
+        Page.WaitForSelectorOptions options) {
+        log.info("等待元素：{}, 超时时间: {} ms, ", selector, options.timeout);
+        return page.waitForSelector(selector, options);
+    }
+
+    @Deprecated
     public static ElementHandle querySelector(@NonNull Page page, @NonNull String selector, int tryTimes) {
         return querySelector(page, selector, tryTimes, false);
     }
 
+    @Deprecated
     public static ElementHandle querySelector(@NonNull Page page, @NonNull String selector, int tryTimes,
         boolean forceVisible) {
         return querySelector(page, selector, tryTimes, forceVisible ? VISIBLE_CONDITION : NOT_NULL_CONDITION);
     }
 
+    @Deprecated
     public static ElementHandle querySelector(@NonNull Page page, @NonNull String selector, int tryTimes,
         ElementHandleCheckCondition checkCondition) {
         if (checkCondition == null) {
@@ -49,6 +74,7 @@ public abstract class PlaywrightUtils {
         return null;
     }
 
+    @Deprecated
     public static ElementHandle querySelector(@NonNull ElementHandle parent, @NonNull String selector, int tryTimes,
         ElementHandleCheckCondition checkCondition) {
         if (checkCondition == null) {

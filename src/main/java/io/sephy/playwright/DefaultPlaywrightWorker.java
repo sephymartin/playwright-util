@@ -1,12 +1,18 @@
 package io.sephy.playwright;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
+import com.microsoft.playwright.options.ScreenshotType;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -59,6 +65,22 @@ public class DefaultPlaywrightWorker<T> {
                 page.setDefaultTimeout(pageSettings.getDefaultTimeout());
             }
             return playwrightPageWorker.doWithPage(page);
+        } catch (Exception e) {
+            if (page != null) {
+                String dir = properties != null && properties.getScreenshotDir() != null
+                    ? properties.getScreenshotDir().toString() : "screenshot";
+                LocalDateTime now = LocalDateTime.now();
+                dir = dir + "/" + now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+                try {
+                    Files.createDirectories(Paths.get(dir));
+                    page.screenshot(new Page.ScreenshotOptions()
+                        .setPath(Paths.get(dir, now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) + ".jpg"))
+                        .setType(ScreenshotType.JPEG));
+                } catch (IOException ex) {
+                    log.error("", ex);
+                }
+            }
+            throw e;
         } finally {
             if (page != null) {
                 try {

@@ -1,11 +1,13 @@
 package io.sephy.playwright;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
+import org.springframework.util.StringUtils;
 
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserType;
@@ -23,6 +25,8 @@ import lombok.Data;
 public class PlaywrightProperties implements InitializingBean {
 
     private List<Path> initScripts;
+
+    private Path screenshotDir;
 
     @NestedConfigurationProperty
     private ProxySettings proxySettings;
@@ -49,11 +53,20 @@ public class PlaywrightProperties implements InitializingBean {
     @Override
     public void afterPropertiesSet() throws Exception {
 
-        if (proxySettings != null && proxySettings.isUseProxy) {
+        if (proxySettings != null && proxySettings.enableProxy) {
             Proxy proxy = new Proxy(proxySettings.server);
-            proxy.setUsername(proxySettings.username);
-            proxy.setPassword(proxySettings.password);
-            contextOptions.setProxy(proxy);
+
+            String username = StringUtils.trimAllWhitespace(proxySettings.username);
+            if (username.length() > 0) {
+                proxy.setUsername(username);
+            }
+
+            String password = StringUtils.trimAllWhitespace(proxySettings.password);
+            if (password.length() > -0) {
+                proxy.setPassword(password);
+            }
+            launchOptions.setProxy(proxy);
+            // contextOptions.setProxy(proxy);
         }
 
         if (screenSizeSettings != null) {
@@ -64,15 +77,14 @@ public class PlaywrightProperties implements InitializingBean {
             contextOptions.setViewportSize(viewportSizeSettings.width, viewportSizeSettings.height);
         }
 
-        if (initScripts != null && !initScripts.isEmpty()) {
+        Files.createDirectories(screenshotDir);
 
-        }
     }
 
     @Data
     public static class ProxySettings {
 
-        private boolean isUseProxy = false;
+        private boolean enableProxy = false;
 
         private String server;
 
