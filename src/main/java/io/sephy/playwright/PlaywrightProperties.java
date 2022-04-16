@@ -24,7 +24,7 @@ import lombok.Data;
 @ConfigurationProperties(prefix = "playwright")
 public class PlaywrightProperties implements InitializingBean {
 
-    private List<Path> initScripts;
+    private List<String> initScripts;
 
     private Path screenshotDir;
 

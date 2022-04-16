@@ -33,11 +33,7 @@ class PlaywrightWorkerEngineTest {
 
     @Test
     public void test() {
-        playwrightWorkerEngine.doWithPlaywright(new TestPlaywrightWorker(page -> {
-            page.navigate("https://www.baidu.com");
-            log.info(page.content());
-            return null;
-        }));
+
     }
 
     private static class TestPlaywrightWorker extends DefaultPlaywrightWorker<Void> {

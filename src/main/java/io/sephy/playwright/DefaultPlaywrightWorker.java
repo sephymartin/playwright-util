@@ -1,11 +1,16 @@
 package io.sephy.playwright;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+
+import org.springframework.core.io.support.ResourcePatternUtils;
+import org.springframework.util.ResourceUtils;
+import org.springframework.util.StreamUtils;
 
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
@@ -55,7 +60,14 @@ public class DefaultPlaywrightWorker<T> {
             browser = browserType.launch(options); //
             context = browser.newContext(contextOptions); //
             if (properties != null && properties.getInitScripts() != null && !properties.getInitScripts().isEmpty()) {
-                for (Path path : properties.getInitScripts()) {
+                for (String path : properties.getInitScripts()) {
+                    if (ResourcePatternUtils.isUrl(path)) {
+                        try (InputStream inputStream = ResourceUtils.toURI(path).toURL().openStream()) {
+                            context.addInitScript(StreamUtils.copyToString(inputStream, StandardCharsets.UTF_8));
+                        }
+                    } else {
+                        context.addInitScript(Paths.get(path));
+                    }
                     context.addInitScript(path);
                 }
             }
@@ -64,23 +76,23 @@ public class DefaultPlaywrightWorker<T> {
             if (pageSettings != null) {
                 page.setDefaultTimeout(pageSettings.getDefaultTimeout());
             }
-            return playwrightPageWorker.doWithPage(page);
+            return playwrightPageWorker.doWithPage(page, context);
         } catch (Exception e) {
             if (page != null) {
                 String dir = properties != null && properties.getScreenshotDir() != null
-                    ? properties.getScreenshotDir().toString() : "screenshot";
+                        ? properties.getScreenshotDir().toString() : "screenshot";
                 LocalDateTime now = LocalDateTime.now();
                 dir = dir + "/" + now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
                 try {
                     Files.createDirectories(Paths.get(dir));
                     page.screenshot(new Page.ScreenshotOptions()
-                        .setPath(Paths.get(dir, now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) + ".jpg"))
-                        .setType(ScreenshotType.JPEG));
+                            .setPath(Paths.get(dir, now.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")) + ".jpg"))
+                            .setType(ScreenshotType.JPEG));
                 } catch (IOException ex) {
                     log.error("", ex);
                 }
             }
-            throw e;
+            throw new RuntimeException(e);
         } finally {
             if (page != null) {
                 try {
@@ -110,7 +122,6 @@ public class DefaultPlaywrightWorker<T> {
                     log.error("close playwright error", e);
                 }
             }
-
         }
     }
 }

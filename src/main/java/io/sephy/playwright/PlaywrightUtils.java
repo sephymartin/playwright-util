@@ -114,8 +114,8 @@ public abstract class PlaywrightUtils {
     public static void randomClick(@NonNull Page page, @NonNull ElementHandle elementHandle) {
         BoundingBox boundingBox = elementHandle.boundingBox();
         Random random = new Random();
-        double deltaX = (boundingBox.width) * random.nextDouble();
-        double deltaY = (boundingBox.height) * random.nextDouble();
+        double deltaX = (boundingBox.width) * (3 + random.nextInt(97)) / 100;
+        double deltaY = (boundingBox.height) * (3 + random.nextInt(97)) / 100;
         double targetX = boundingBox.x + deltaX;
         double targetY = boundingBox.y + deltaY;
         log.info("模拟鼠标移动，坐标：{}, {}", targetX, targetY);
@@ -127,8 +127,8 @@ public abstract class PlaywrightUtils {
     public static void randomClick(@NonNull Page page, @NonNull Locator locator) {
         BoundingBox boundingBox = locator.boundingBox();
         Random random = new Random();
-        double deltaX = (boundingBox.width) * random.nextDouble();
-        double deltaY = (boundingBox.height) * random.nextDouble();
+        double deltaX = (boundingBox.width) * (3 + random.nextInt(97)) / 100;
+        double deltaY = (boundingBox.height) * (3 + random.nextInt(97)) / 100;
         double targetX = boundingBox.x + deltaX;
         double targetY = boundingBox.y + deltaY;
         log.info("模拟鼠标移动，坐标：{}, {}", targetX, targetY);
