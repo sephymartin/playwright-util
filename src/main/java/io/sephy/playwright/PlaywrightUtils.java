@@ -46,18 +46,15 @@ public abstract class PlaywrightUtils {
         return page.waitForSelector(selector, options);
     }
 
-    @Deprecated
     public static ElementHandle querySelector(@NonNull Page page, @NonNull String selector, int tryTimes) {
         return querySelector(page, selector, tryTimes, false);
     }
 
-    @Deprecated
     public static ElementHandle querySelector(@NonNull Page page, @NonNull String selector, int tryTimes,
         boolean forceVisible) {
         return querySelector(page, selector, tryTimes, forceVisible ? VISIBLE_CONDITION : NOT_NULL_CONDITION);
     }
 
-    @Deprecated
     public static ElementHandle querySelector(@NonNull Page page, @NonNull String selector, int tryTimes,
         ElementHandleCheckCondition checkCondition) {
         if (checkCondition == null) {
@@ -65,16 +62,19 @@ public abstract class PlaywrightUtils {
         }
         for (int i = 0; i < tryTimes; i++) {
             log.info("进行第 {}/{} 次尝试，查找元素：{}", i + 1, tryTimes, selector);
-            ElementHandle elementHandle = page.querySelector(selector);
-            if (checkCondition.check(elementHandle)) {
-                return elementHandle;
+            try {
+                ElementHandle elementHandle = page.querySelector(selector);
+                if (checkCondition.check(elementHandle)) {
+                    return elementHandle;
+                }
+            } catch (Exception e) {
+                // ignore
             }
             sleepIgnoreException(TimeUnit.SECONDS, 1L);
         }
         return null;
     }
 
-    @Deprecated
     public static ElementHandle querySelector(@NonNull ElementHandle parent, @NonNull String selector, int tryTimes,
         ElementHandleCheckCondition checkCondition) {
         if (checkCondition == null) {
