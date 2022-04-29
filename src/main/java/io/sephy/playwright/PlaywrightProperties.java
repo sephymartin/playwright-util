@@ -50,6 +50,8 @@ public class PlaywrightProperties implements InitializingBean {
 
     private List<Path> extraInitScripts;
 
+    private List<String> routeSettings;
+
     @Override
     public void afterPropertiesSet() throws Exception {
 
@@ -65,8 +67,8 @@ public class PlaywrightProperties implements InitializingBean {
             if (password.length() > -0) {
                 proxy.setPassword(password);
             }
-            launchOptions.setProxy(proxy);
-            // contextOptions.setProxy(proxy);
+            launchOptions.setProxy(new Proxy("per-context"));
+            contextOptions.setProxy(proxy);
         }
 
         if (screenSizeSettings != null) {
