@@ -91,50 +91,130 @@ public abstract class PlaywrightUtils {
         return null;
     }
 
-    public static Locator locator(@NonNull Page page, @NonNull String selector, int tryTimes) {
-        return locator(page, selector, tryTimes, false);
+    public static Locator locator(Page page, String selector, int tryTimes) {
+        return locator(page, selector, null, null, tryTimes);
     }
 
-    public static Locator locator(@NonNull Page page, @NonNull String selector, int tryTimes, boolean forceVisible) {
+    public static Locator locator(Page page, String selector, Page.LocatorOptions locatorOptions, int tryTimes) {
+        return locator(page, selector, locatorOptions, null, 1);
+    }
+
+    public static Locator locator(Page page, String selector, WaitForSelectorState state, int tryTimes) {
+        return locator(page, selector, null, state, 1);
+    }
+
+    public static Locator locator(Page page, String selector, Page.LocatorOptions locatorOptions,
+        WaitForSelectorState state, int tryTimes) {
+        return locator(page, selector, locatorOptions, state, tryTimes, 1000D);
+    }
+
+    public static Locator locator(@NonNull Page page, @NonNull String selector, Page.LocatorOptions locatorOptions,
+        WaitForSelectorState state, int tryTimes, double timeout) {
+        if (state == null) {
+            state = WaitForSelectorState.VISIBLE;
+        }
         for (int i = 0; i < tryTimes; i++) {
-            log.info("进行第 {}/{} 次尝试，查找元素：{}", i + 1, tryTimes, selector);
-            Locator locator = page.locator(selector);
-            if (locator != null) {
-                if (forceVisible && locator.isVisible()) {
+            log.info("进行第 {}/{} 次尝试，查找元素: selector: {}, state: {}, timeout: {}", i + 1, tryTimes, selector, state,
+                timeout);
+            try {
+                Locator locator = page.locator(selector, locatorOptions);
+                if (locator != null && locator.count() > 0) {
+                    locator.waitFor(new Locator.WaitForOptions().setState(state).setTimeout(timeout));
                     return locator;
                 } else {
-                    return locator;
+                    page.waitForTimeout(timeout);
                 }
+            } catch (Exception e) {
+                // ignore
             }
-            sleepIgnoreException(TimeUnit.SECONDS, 1L);
         }
+        log.warn("查找元素失败：{}", selector);
         return null;
+    }
+
+    public static Locator locatorChildren(@NonNull Page page, @NonNull Locator parent, @NonNull String selector,
+        int tryTimes) {
+        return locatorChildren(page, parent, selector, null, null, tryTimes, 1000D);
+    }
+
+    public static Locator locatorChildren(@NonNull Page page, @NonNull Locator parent, @NonNull String selector,
+        Locator.LocatorOptions locatorOptions, int tryTimes) {
+        return locatorChildren(page, parent, selector, locatorOptions, null, tryTimes, 1000D);
+    }
+
+    public static Locator locatorChildren(@NonNull Page page, @NonNull Locator parent, @NonNull String selector,
+        WaitForSelectorState state, int tryTimes) {
+        return locatorChildren(page, parent, selector, null, state, tryTimes, 1000D);
+    }
+
+    public static Locator locatorChildren(@NonNull Page page, @NonNull Locator parent, @NonNull String selector,
+        Locator.LocatorOptions locatorOptions, WaitForSelectorState state, int tryTimes) {
+        return locatorChildren(page, parent, selector, locatorOptions, state, tryTimes, 1000D);
+    }
+
+    public static Locator locatorChildren(@NonNull Page page, @NonNull Locator parent, @NonNull String selector,
+        Locator.LocatorOptions locatorOptions, WaitForSelectorState state, int tryTimes, double timeout) {
+        if (state == null) {
+            state = WaitForSelectorState.VISIBLE;
+        }
+        for (int i = 0; i < tryTimes; i++) {
+            log.info("进行第 {}/{} 次尝试，查找元素: selector: {}, state: {}, timeout: {}", i + 1, tryTimes, selector, state,
+                timeout);
+            try {
+                Locator locator = parent.locator(selector, locatorOptions);
+                if (locator != null && locator.count() > 0) {
+                    locator.waitFor(new Locator.WaitForOptions().setState(state).setTimeout(timeout));
+                    return locator;
+                } else {
+                    page.waitForTimeout(timeout);
+                }
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+        log.warn("查找元素失败：{}", selector);
+        return null;
+    }
+
+    public static void typeString(@NonNull Locator locator, String input) {
+        locator.fill("");
+        log.info("模拟键盘输入: {}", input);
+        locator.fill(input);
     }
 
     public static void randomClick(@NonNull Page page, @NonNull ElementHandle elementHandle) {
         BoundingBox boundingBox = elementHandle.boundingBox();
         Random random = new Random();
-        double deltaX = (boundingBox.width) * (3 + random.nextInt(97)) / 100;
-        double deltaY = (boundingBox.height) * (3 + random.nextInt(97)) / 100;
+        double deltaX = (boundingBox.width) * (random.nextDouble() * 4 + 2);
+        double deltaY = (boundingBox.height) * (random.nextDouble() * 4 + 2);
         double targetX = boundingBox.x + deltaX;
         double targetY = boundingBox.y + deltaY;
         log.info("模拟鼠标移动，坐标：{}, {}", targetX, targetY);
         page.mouse().move(targetX, targetY, new Mouse.MoveOptions().setSteps(5));
-        log.info("模拟鼠标点击，坐标：{}, {}", targetX, targetY);
-        page.mouse().click(targetX, targetY);
+        // log.info("模拟鼠标点击，坐标：{}, {}", targetX, targetY);
+        elementHandle.click();
+        // page.mouse().click(targetX, targetY);
     }
 
     public static void randomClick(@NonNull Page page, @NonNull Locator locator) {
         BoundingBox boundingBox = locator.boundingBox();
         Random random = new Random();
-        double deltaX = (boundingBox.width) * (3 + random.nextInt(97)) / 100;
-        double deltaY = (boundingBox.height) * (3 + random.nextInt(97)) / 100;
+        double deltaX = (boundingBox.width) * (random.nextDouble() * 4 + 2);
+        double deltaY = (boundingBox.height) * (random.nextDouble() * 4 + 2);
         double targetX = boundingBox.x + deltaX;
         double targetY = boundingBox.y + deltaY;
         log.info("模拟鼠标移动，坐标：{}, {}", targetX, targetY);
         page.mouse().move(targetX, targetY, new Mouse.MoveOptions().setSteps(5));
-        log.info("模拟鼠标点击，坐标：{}, {}", targetX, targetY);
-        page.mouse().click(targetX, targetY);
+        // log.info("模拟鼠标点击，坐标：{}, {}", targetX, targetY);
+        locator.click();
+        // page.mouse().click(targetX, targetY);
+    }
+
+    public static void randomClickAndType(@NonNull Page page, @NonNull Locator locator, String textToType) {
+        randomClick(page, locator);
+        locator.fill("");
+        log.info("模拟键盘输入：{}", textToType);
+        locator.type(textToType);
     }
 
     public static void sleepIgnoreException(TimeUnit unit, long duration) {
